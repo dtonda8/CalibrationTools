@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2024 Tier IV, Inc.
+# Copyright 2022 Tier IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 from pathlib import Path
 
 from PySide2.QtCore import QObject
@@ -126,7 +125,7 @@ class RosBagDataSource(DataSource, QObject):
             (topic, data, t) = self.reader.read_next()
             self.send_data(topic, data)
         else:
-            logging.info("bag ended !")
+            print("bag ended !", flush=True)
 
     def send_data(self, topic, data):
         """Send a image message to the consumer prior transformation to a numpy array."""
@@ -137,11 +136,9 @@ class RosBagDataSource(DataSource, QObject):
         # cSpell:ignore imgmsg
         if isinstance(msg, Image):
             image_data = self.bridge.imgmsg_to_cv2(msg)
-            stamp = msg.header.stamp.sec + 1e-9 * msg.header.stamp.nanosec
-            self.data_callback(image_data, stamp)
+            self.data_callback(image_data)
 
         elif isinstance(msg, CompressedImage):
             image_data = np.frombuffer(msg.data, np.uint8)
             image_data = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-            stamp = msg.header.stamp.sec + 1e-9 * msg.header.stamp.nanosec
-            self.data_callback(image_data, stamp)
+            self.data_callback(image_data)

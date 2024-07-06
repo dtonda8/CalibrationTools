@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2024 Tier IV, Inc.
+# Copyright 2022 Tier IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,11 @@
 
 from collections import defaultdict
 import copy
-import logging
 from optparse import OptionParser
 import os
 import signal
 import sys
 import threading
-import time
 from typing import Dict
 
 from PySide2.QtCore import QThread
@@ -76,7 +74,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
     produced_data_signal = Signal()
     consumed_data_signal = Signal()
     should_process_image = Signal()
-    request_image_detection = Signal(object, float)
+    request_image_detection = Signal(object)
 
     def __init__(self, cfg):
         super().__init__()
@@ -86,8 +84,6 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
         # Threading variables
         self.lock = threading.RLock()
-        self.produced_image = None
-        self.produced_stamp = None
         self.unprocessed_image = None
         self.pending_detection_request = False
         self.pending_detection_result = False
@@ -99,8 +95,6 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.calibration_thread.start()
 
         # Calibration results
-        self.estimated_fps = 0
-        self.last_processed_stamp = None
 
         # Camera models to use normally
         self.current_camera_model: CameraModel = None
@@ -287,13 +281,13 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                 delayed_change()
 
         def on_training_sample_changed(index):
-            logging.debug(f"on_training_sample_changed={index}")
+            print(f"on_training_sample_changed={index}")
             self.training_sample_label.setText(f"Training sample: {index}")
             img = self.data_collector.get_training_image(index)
             self.process_db_data(img)
 
         def on_evaluation_sample_changed(index):
-            logging.info(f"on_evaluation_sample_changed={index}")
+            print(f"on_evaluation_sample_changed={index}")
             self.evaluation_sample_label.setText(f"Evaluation sample: {index}")
             img = self.data_collector.get_evaluation_image(index)
             self.process_db_data(img)
@@ -322,7 +316,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.calibration_group.setFlat(True)
 
         self.calibrator_type_combobox = QComboBox()
-        self.calibrator_type_combobox.setEnabled(False)  # TODO: implement this later
+        self.calibrator_type_combobox.setEnabled(False)  # TODO(knzo25): implement this later
 
         self.calibration_parameters_button = QPushButton("Calibration parameters")
         self.calibration_button = QPushButton("Calibrate")
@@ -344,7 +338,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.calibration_evaluation_inlier_rms_label = QLabel("\trms error (inlier):")
 
         def on_parameters_view_closed():
-            # self.calibrator_type_combobox.setEnabled(True) TODO implement this later
+            # self.calibrator_type_combobox.setEnabled(True) TODO(knzo25): implement this later
             self.calibration_parameters_button.setEnabled(True)
 
         def on_parameters_button_clicked():
@@ -407,7 +401,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                     CalibratorEnum.from_name(self.cfg["calibrator_type"]).get_id()
                 )
             except Exception as e:
-                logging.error(f"Invalid calibration_type: {e}")
+                print(f"Invalid calibration_type: {e}")
         else:
             self.calibrator_type_combobox.setCurrentIndex(0)
 
@@ -435,7 +429,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
     def make_detector_group(self):
         def detector_parameters_button_callback():
-            logging.info("detector_parameters_button_callback")
+            print("detector_parameters_button_callback")
             self.detector_parameters_view = ParameterView(self.detector)
             self.detector_parameters_view.parameter_changed.connect(self.on_parameter_changed)
 
@@ -515,7 +509,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
                 else self.calibrated_camera_model
             )
 
-            logging.info("view_data_collection_statistics_callback")
+            print("view_data_collection_statistics_callback")
             data_collection_statistics_view = DataCollectorView(
                 self.data_collector.clone_without_images(), camera_model
             )
@@ -527,7 +521,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         def data_collection_parameters_callback():
             self.data_collection_parameters_button.setEnabled(False)
 
-            logging.debug("data_collection_parameters_callback")
+            print("data_collection_parameters_callback")
             data_collection_parameters_view = ParameterView(self.data_collector)
             data_collection_parameters_view.closed.connect(
                 data_collection_parameters_closed_callback
@@ -653,10 +647,10 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
         self.setWindowTitle(f"Camera intrinsics calibrator ({self.data_source.get_camera_name()})")
 
-        logging.info("Init")
-        logging.info(f"\tmode : {mode}")
-        logging.info(f"\tdata_source : {data_source}")
-        logging.info(f"\tboard_type : {board_type}")
+        print("Init")
+        print(f"\tmode : {mode}")
+        print(f"\tdata_source : {data_source}")
+        print(f"\tboard_type : {board_type}")
 
         detector_cfg = self.cfg[self.board_type.value["name"] + "_detector"]
 
@@ -694,7 +688,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.calibrated_camera_model = calibrated_model
 
         self.calibration_status_label.setText("Calibration status: idle")
-        self.calibration_time_label.setText(f"Calibration time: {dt:.2f}s")  # noqa E231
+        self.calibration_time_label.setText(f"Calibration time: {dt:.2f}s")
         self.calibration_training_samples_label.setText(
             f"Training samples: {num_training_detections}"
         )
@@ -705,11 +699,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             f"\tPost rejection inliers: {num_training_post_rejection_inliers}"
         )
 
-        self.calibration_training_rms_label.setText(
-            f"\trms error (all): {training_rms_error:.3f}"  # noqa E231
-        )
+        self.calibration_training_rms_label.setText(f"\trms error (all): {training_rms_error:.3f}")
         self.calibration_training_inlier_rms_label.setText(
-            f"\trms error (inliers): {training_inlier_rms_error:.3f}"  # noqa E231
+            f"\trms error (inliers): {training_inlier_rms_error:.3f}"
         )
 
         self.calibration_evaluation_samples_label.setText(
@@ -720,13 +712,13 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         )
 
         self.calibration_evaluation_rms_label.setText(
-            f"\trms error (all): {evaluation_rms_error:.3f}"  # noqa E231
+            f"\trms error (all): {evaluation_rms_error:.3f}"
         )
         self.calibration_evaluation_inlier_rms_label.setText(
-            f"\trms error (inliers): {evaluation_inlier_rms_error:.3f}"  # noqa E231
+            f"\trms error (inliers): {evaluation_inlier_rms_error:.3f}"
         )
 
-        # self.calibrator_type_combobox.setEnabled(True) TODO implement this later
+        # self.calibrator_type_combobox.setEnabled(True) TODO(knzo25): implement this later
         self.calibration_parameters_button.setEnabled(True)
         self.calibration_button.setEnabled(True)
         self.evaluation_button.setEnabled(True)
@@ -748,7 +740,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.undistortion_alpha_spinbox.setEnabled(True)
 
         self.calibration_status_label.setText("Calibration status: idle")
-        self.calibration_time_label.setText(f"Calibration time: {dt:.2f}s")  # noqa E231
+        self.calibration_time_label.setText(f"Calibration time: {dt:.2f}s")
         self.calibration_training_samples_label.setText(
             f"Training samples: {num_training_detections}"
         )
@@ -757,11 +749,9 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             f"\tPost rejection inliers: {num_training_post_rejection_inliers}"
         )
 
-        self.calibration_training_rms_label.setText(
-            f"\trms error (all): {training_rms_error:.3f}"  # noqa E231
-        )
+        self.calibration_training_rms_label.setText(f"\trms error (all): {training_rms_error:.3f}")
         self.calibration_training_inlier_rms_label.setText(
-            f"\trms error (inliers): {training_inlier_rms_error:.3f}"  # noqa E231
+            f"\trms error (inliers): {training_inlier_rms_error:.3f}"
         )
 
         self.calibration_evaluation_samples_label.setText(
@@ -772,13 +762,13 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         )
 
         self.calibration_evaluation_rms_label.setText(
-            f"\trms error (all): {evaluation_rms_error:.3f}"  # noqa E231
+            f"\trms error (all): {evaluation_rms_error:.3f}"
         )
         self.calibration_evaluation_inlier_rms_label.setText(
-            f"\trms error (inliers): {evaluation_inlier_rms_error:.3f}"  # noqa E231
+            f"\trms error (inliers): {evaluation_inlier_rms_error:.3f}"
         )
 
-        # self.calibrator_type_combobox.setEnabled(True) TODO implement this later
+        # self.calibrator_type_combobox.setEnabled(True) TODO(knzo25): implement this later
         self.calibration_parameters_button.setEnabled(True)
         self.calibration_button.setEnabled(self.operation_mode == OperationMode.CALIBRATION)
         self.evaluation_button.setEnabled(True)
@@ -798,7 +788,7 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         if output_folder is None or output_folder == "":
             return
 
-        logging.info(f"Saving calibration results to {output_folder}")
+        print(f"Saving calibration results to {output_folder}")
 
         save_intrinsics(
             self.calibrated_camera_model,
@@ -816,12 +806,12 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
             os.mkdir(evaluation_folder)
 
         for index, image in enumerate(self.data_collector.get_training_images()):
-            cv2.imwrite(os.path.join(training_folder, f"{index:04d}.jpg"), image)  # noqa E231
+            cv2.imwrite(os.path.join(training_folder, f"{index:04d}.jpg"), image)
 
         for index, image in enumerate(self.data_collector.get_evaluation_images()):
-            cv2.imwrite(os.path.join(evaluation_folder, f"{index:04d}.jpg"), image)  # noqa E231
+            cv2.imwrite(os.path.join(evaluation_folder, f"{index:04d}.jpg"), image)
 
-    def process_detection_results(self, img: np.array, detection: BoardDetection, img_stamp: float):
+    def process_detection_results(self, img: np.array, detection: BoardDetection):
         """Process the results from an object detection."""
         # Signal that the detector is free
         self.consumed_data_signal.emit()
@@ -916,37 +906,35 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
             self.raw_detection_label.setText("Detected: True")
             self.raw_linear_error_rms_label.setText(
-                f"Linear error rms: {detection.get_linear_error_rms():.2f} px"  # noqa E231
+                f"Linear error rms: {detection.get_linear_error_rms():.2f} px"
             )
-            self.rough_tilt_label.setText(
-                f"Rough tilt: {detection.get_tilt():.2f} degrees"  # noqa E231
-            )
+            self.rough_tilt_label.setText(f"Rough tilt: {detection.get_tilt():.2f} degrees")
             self.rough_angles_label.setText(
-                f"Rough angles: x={rough_angles[0]:.2f} y={rough_angles[1]:.2f} degrees"  # noqa E231
+                f"Rough angles: x={rough_angles[0]:.2f} y={rough_angles[1]:.2f} degrees"
             )
             self.rough_position_label.setText(
-                f"Rough position: x={pose_translation[0]:.2f} y={pose_translation[1]:.2f} z={pose_translation[2]:.2f}"  # noqa E231
+                f"Rough position: x={pose_translation[0]:.2f} y={pose_translation[1]:.2f} z={pose_translation[2]:.2f}"
             )
-            self.skew_label.setText(f"Skew: {detection.get_normalized_skew():.2f}")  # noqa E231
+            self.skew_label.setText(f"Skew: {detection.get_normalized_skew():.2f}")
             self.relative_area_label.setText(
-                f"Relative area: {100.0*detection.get_normalized_size():.2f}"  # noqa E231
+                f"Relative area: {100.0*detection.get_normalized_size():.2f}"
             )
 
             self.single_shot_reprojection_error_max_label.setText(
-                f"Reprojection error (max): {reprojection_error_max:.3f} px ({100.0 * reprojection_error_max_relative:.2f}%)"  # noqa E231
+                f"Reprojection error (max): {reprojection_error_max:.3f} px ({100.0 * reprojection_error_max_relative:.2f}%)"
             )
             self.single_shot_reprojection_error_avg_label.setText(
-                f"Reprojection error (avg): {reprojection_error_mean:.3f} px ({100.0 * reprojection_error_mean_relative:.2f}%)"  # noqa E231
+                f"Reprojection error (avg): {reprojection_error_mean:.3f} px ({100.0 * reprojection_error_mean_relative:.2f}%)"
             )
             self.single_shot_reprojection_error_rms_label.setText(
-                f"Reprojection error (rms): {reprojection_error_rms:.3f} px ({100.0 * reprojection_error_rms_relative:.2f}%)"  # noqa E231
+                f"Reprojection error (rms): {reprojection_error_rms:.3f} px ({100.0 * reprojection_error_rms_relative:.2f}%)"
             )
 
             self.training_occupancy_rate_label.setText(
-                f"Training occupancy: {100.0*self.data_collector.get_training_occupancy_rate():.2f}"  # noqa E231
+                f"Training occupancy: {100.0*self.data_collector.get_training_occupancy_rate():.2f}"
             )
             self.evaluation_occupancy_rate_label.setText(
-                f"Evaluation occupancy: {100.0*self.data_collector.get_evaluation_occupancy_rate():.2f}"  # noqa E231
+                f"Evaluation occupancy: {100.0*self.data_collector.get_evaluation_occupancy_rate():.2f}"
             )
 
         # Draw training / evaluation points
@@ -993,20 +981,6 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         self.image_view.set_image(img)
 
         # Request a redrawing
-        current_time = time.time()
-        detection_delay = time.time() - img_stamp
-        current_fps = (
-            0
-            if self.last_processed_stamp is None
-            else 1.0 / max(1e-5, (current_time - self.last_processed_stamp))
-        )
-        self.estimated_fps = 0.9 * self.estimated_fps + 0.1 * current_fps
-        self.last_processed_stamp = current_time
-        detection_time = current_time - self.detection_request_time
-        self.setWindowTitle(
-            f"Camera intrinsics calibrator ({self.data_source.get_camera_name()}). Data delay={detection_delay: .2f} Detection time={detection_time: .2f} fps={self.estimated_fps: .2f} Data time={img_stamp: .2f}"
-        )
-
         self.image_view.update()
         self.graphics_view.update()
 
@@ -1034,8 +1008,6 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
     def process_data(self):
         """Request the detector to process the image (the detector itself runs in another thread). Depending on the ImageViewMode selected, the image is also rectified."""
-        stamp = self.unprocessed_stamp
-
         if self.image_view_type_combobox.currentData() in {
             ImageViewMode.SOURCE_UNRECTIFIED,
             ImageViewMode.TRAINING_DB_UNRECTIFIED,
@@ -1052,9 +1024,8 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
 
         self.pending_detection_request = False
         self.pending_detection_result = True
-        self.detection_request_time = time.time()
 
-        self.request_image_detection.emit(img, stamp)
+        self.request_image_detection.emit(img)
 
     def process_db_data(self, img):
         assert self.image_view_type_combobox.currentData() in set(
@@ -1082,31 +1053,26 @@ class CameraIntrinsicsCalibratorUI(QMainWindow):
         with self.lock:
             if self.produced_image is not None:
                 self.unprocessed_image = self.produced_image
-                self.unprocessed_stamp = self.produced_stamp
             else:
                 self.unprocessed_image = self.produced_image
-                self.unprocessed_stamp = self.produced_stamp
                 self.produced_image = None
-                self.produced_stamp = None
 
         if self.pending_detection_result:
             self.pending_detection_request = True
         else:
             self.should_process_image.emit()
 
-    def data_source_external_callback(self, img: np.array, stamp: float):
+    def data_source_external_callback(self, img: np.array):
         """
         Consumer side of the producer/consumer pattern.
 
         The producer generally has its own thread so synchronization it is needed
         Args:
             img (np.array): the produced image coming from any data source.
-            stamp (float): the produced image's timestamp as a float.
         """
         # We decouple the the data coming from the source with the processing slot to avoid dropping frames in case we can not process them all
         with self.lock:
             self.produced_image = img
-            self.produced_stamp = stamp
             self.produced_data_signal.emit()  # Using a signal from another thread results in the slot being executed in the class Qt thread
 
     def on_parameter_changed(self):
@@ -1129,7 +1095,7 @@ def main(args=None):
         with open(options.config_file, "r") as stream:
             cfg = yaml.safe_load(stream)
     except Exception as e:
-        logging.error(f"Could not load the parameters from the YAML file ({e})")
+        print(f"Could not load the parameters from the YAML file ({e})")
 
     try:
         signal.signal(signal.SIGINT, sigint_handler)
@@ -1137,7 +1103,7 @@ def main(args=None):
         ui = CameraIntrinsicsCalibratorUI(cfg)  # noqa: F841
         sys.exit(app.exec_())
     except (KeyboardInterrupt, SystemExit):
-        logging.info("Received sigint. Quitting...")
+        print("Received sigint. Quitting...")
         rclpy.shutdown()
 
 

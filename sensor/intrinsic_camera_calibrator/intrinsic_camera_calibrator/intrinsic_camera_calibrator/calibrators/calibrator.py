@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2024 Tier IV, Inc.
+# Copyright 2022 Tier IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 # limitations under the License.
 
 from enum import Enum
-import logging
 import multiprocessing as mp
 import threading
 import time
@@ -470,8 +469,8 @@ class Calibrator(ParameterizedClass, QObject):
             inlier_mask = rms_errors < pre_rejection_max_rms_error
             num_inliers = inlier_mask.sum()
 
-            logging.info(
-                f"Iteration {it}: inliers: {num_inliers} | mean rms: {rms_errors.mean():.2f} | min rms: {rms_errors.min():.2f} | max rms: {rms_errors.max():.2f}"  # noqa E231
+            print(
+                f"Iteration {it}: inliers: {num_inliers} | mean rms: {rms_errors.mean():.2f} | min rms: {rms_errors.min():.2f} | max rms: {rms_errors.max():.2f}"
             )
 
             if num_inliers > max_inliers or (
@@ -481,8 +480,8 @@ class Calibrator(ParameterizedClass, QObject):
                 min_error = rms_errors.mean()
                 max_inliers = num_inliers
 
-        logging.info(
-            f"Pre rejection inliers = {max_inliers}/{len(detections)} | threshold = {pre_rejection_max_rms_error:.2f}"  # noqa E231
+        print(
+            f"Pre rejection inliers = {max_inliers}/{len(detections)} | threshold = {pre_rejection_max_rms_error:.2f}"
         )
 
         return model, [detections[i] for i in best_inlier_mask.nonzero()[0]]
@@ -555,7 +554,7 @@ class Calibrator(ParameterizedClass, QObject):
                     max_delta_entropy = delta_entropy
                     max_delta_entropy_idx = idx
 
-            logging.info(f"iteration={it}: delta entropy={max_delta_entropy:.3f}")  # noqa E231
+            print(f"iteration={it}: delta entropy={max_delta_entropy:.3f}")
             accepted_array[max_delta_entropy_idx] = True
             add_detection(
                 detections[max_delta_entropy_idx],
@@ -587,7 +586,7 @@ class Calibrator(ParameterizedClass, QObject):
         )
         inliers_mask = rms_error < post_rejection_max_rms_error
 
-        logging.info(
+        print(
             f"Post rejection inliers = {inliers_mask.sum()}/{len(detections)} | threshold = {post_rejection_max_rms_error}"
         )
 

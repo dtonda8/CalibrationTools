@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2024 Tier IV, Inc.
+# Copyright 2022 Tier IV, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -116,8 +116,7 @@ class RosTopicDataSource(DataSource, Node):
         with self.lock:
             image_data = np.frombuffer(msg.data, np.uint8)
             image_data = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-            stamp = msg.header.stamp.sec + 1e-9 * msg.header.stamp.nanosec
-            self.data_callback(image_data, stamp)
+            self.data_callback(image_data)
 
     def image_callback(self, msg: Image):
         """Process a raw image."""
@@ -126,8 +125,7 @@ class RosTopicDataSource(DataSource, Node):
         # cSpell:ignore imgmsg
         with self.lock:
             image_data = self.bridge.imgmsg_to_cv2(msg, "bgr8")
-            stamp = msg.header.stamp.sec + 1e-9 * msg.header.stamp.nanosec
-            self.data_callback(image_data, stamp)
+            self.data_callback(image_data)
 
     def spin(self):
         """Start a new thread for ROS to spin in."""
