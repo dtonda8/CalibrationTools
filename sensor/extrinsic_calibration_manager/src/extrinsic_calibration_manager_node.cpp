@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <extrinsic_calibration_manager/extrinsic_calibration_manager_node.hpp>
-#include <tier4_autoware_utils/geometry/geometry.hpp>
+#include <autoware/universe_utils/geometry/geometry.hpp>
 
 #include <iomanip>
 #include <memory>
@@ -162,12 +162,12 @@ geometry_msgs::msg::Pose ExtrinsicCalibrationManagerNode::getPoseFromYaml(
 
   tf2::Quaternion quat;
   tf2::fromMsg(
-    tier4_autoware_utils::createQuaternionFromRPY(
+    autoware::universe_utils::createQuaternionFromRPY(
       yaml_node[parent_frame][child_frame]["roll"].as<double>(),
       yaml_node[parent_frame][child_frame]["pitch"].as<double>(),
       yaml_node[parent_frame][child_frame]["yaw"].as<double>()),
     quat);
-  return tier4_autoware_utils::transform2pose(toMsg(tf2::Transform(quat, pos)));
+  return autoware::universe_utils::transform2pose(toMsg(tf2::Transform(quat, pos)));
 }
 
 bool ExtrinsicCalibrationManagerNode::dumpCalibrationConfig(
@@ -184,7 +184,7 @@ bool ExtrinsicCalibrationManagerNode::dumpCalibrationConfig(
   out << YAML::Key << parent_frame_ << YAML::Value << YAML::BeginMap;
   for (const auto & target_client : target_clients) {
     const auto xyz = target_client.response.result_pose.position;
-    const auto rpy = tier4_autoware_utils::getRPY(target_client.response.result_pose.orientation);
+    const auto rpy = autoware::universe_utils::getRPY(target_client.response.result_pose.orientation);
 
     std::ostringstream xyz_x, xyz_y, xyz_z, rpy_x, rpy_y, rpy_z;
 

@@ -17,7 +17,7 @@
   <depend>sensor_msgs</depend>
   <depend>signal_processing</depend>
   <depend>std_msgs</depend>
-  <depend>tier4_autoware_utils</depend>
+  <depend>autoware_universe_utils</depend>
   <depend>tier4_debug_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>

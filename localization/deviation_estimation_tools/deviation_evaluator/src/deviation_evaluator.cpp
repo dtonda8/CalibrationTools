@@ -17,7 +17,7 @@
 #include "deviation_evaluator/deviation_evaluator.hpp"
 
 #include "rclcpp/logging.hpp"
-#include "tier4_autoware_utils/geometry/geometry.hpp"
+#include "autoware/universe_utils/geometry/geometry.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -103,7 +103,7 @@ DeviationEvaluator::DeviationEvaluator(
   pub_init_pose_with_cov_ = create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
     "out_initial_pose_with_covariance", 1);
 
-  transform_listener_ = std::make_shared<tier4_autoware_utils::TransformListener>(this);
+  transform_listener_ = std::make_shared<autoware::universe_utils::TransformListener>(this);
 
   current_ndt_pose_ptr_ = nullptr;
   has_published_initial_pose_ = false;

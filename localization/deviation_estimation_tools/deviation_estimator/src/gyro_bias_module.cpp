@@ -15,7 +15,7 @@
 #include "deviation_estimator/gyro_bias_module.hpp"
 
 #include "deviation_estimator/utils.hpp"
-#include "tier4_autoware_utils/geometry/geometry.hpp"
+#include "autoware/universe_utils/geometry/geometry.hpp"
 
 /**
  * @brief update gyroscope bias based on a given trajectory data

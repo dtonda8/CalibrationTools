@@ -16,7 +16,7 @@
 #define VEHICLE_CMD_ANALYZER__VEHICLE_CMD_ANALYZER_HPP_
 
 #include "vehicle_cmd_analyzer/debug_values.hpp"
-#include "vehicle_info_util/vehicle_info_util.hpp"
+#include "autoware_vehicle_info_utils/vehicle_info_utils.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 

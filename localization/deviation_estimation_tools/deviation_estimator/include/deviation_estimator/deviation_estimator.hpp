@@ -22,7 +22,7 @@
 #include "deviation_estimator/velocity_coef_module.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "tf2/utils.h"
-#include "tier4_autoware_utils/ros/transform_listener.hpp"
+#include "autoware/universe_utils/ros/transform_listener.hpp"
 
 #include "autoware_auto_vehicle_msgs/msg/velocity_report.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
@@ -104,7 +104,7 @@ private:
   std::unique_ptr<VelocityCoefModule> vel_coef_module_;
   std::unique_ptr<ValidationModule> validation_module_;
 
-  std::shared_ptr<tier4_autoware_utils::TransformListener> transform_listener_;
+  std::shared_ptr<autoware::universe_utils::TransformListener> transform_listener_;
 
   void callback_pose_with_covariance(geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg);
 

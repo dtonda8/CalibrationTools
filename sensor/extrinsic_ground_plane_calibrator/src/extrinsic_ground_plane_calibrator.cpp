@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <extrinsic_ground_plane_calibrator/extrinsic_ground_plane_calibrator.hpp>
-#include <tier4_autoware_utils/geometry/geometry.hpp>
+#include <autoware/universe_utils/geometry/geometry.hpp>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/PCLPointCloud2.h>
@@ -432,9 +432,9 @@ void ExtrinsicGroundPlaneCalibrator::filterCalibration(
 
   Eigen::Vector3d estimated_translation;
   auto estimated_rpy =
-    tier4_autoware_utils::getRPY(tf2::toMsg(estimated_parent_to_child_eigen).orientation);
+    autoware::universe_utils::getRPY(tf2::toMsg(estimated_parent_to_child_eigen).orientation);
   auto initial_rpy =
-    tier4_autoware_utils::getRPY(tf2::toMsg(initial_parent_to_child_eigen).orientation);
+    autoware::universe_utils::getRPY(tf2::toMsg(initial_parent_to_child_eigen).orientation);
 
   if (verbose_) {
     RCLCPP_INFO(
@@ -485,7 +485,7 @@ void ExtrinsicGroundPlaneCalibrator::filterCalibration(
   // By detecting the ground plane and fabricating a pose arbitrarily, the x, y, and yaw do not hold
   // real meaning, so we instead just use the ones from the initial calibration
   geometry_msgs::msg::Quaternion estimated_orientation_msg =
-    tier4_autoware_utils::createQuaternionFromRPY(estimated_rpy.x, estimated_rpy.y, initial_rpy.z);
+    autoware::universe_utils::createQuaternionFromRPY(estimated_rpy.x, estimated_rpy.y, initial_rpy.z);
   Eigen::Quaterniond estimated_orientation_eigen;
 
   tf2::fromMsg(estimated_orientation_msg, estimated_orientation_eigen);

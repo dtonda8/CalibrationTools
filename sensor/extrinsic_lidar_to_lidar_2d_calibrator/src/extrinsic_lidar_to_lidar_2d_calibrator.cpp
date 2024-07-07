@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <extrinsic_lidar_to_lidar_2d_calibrator/extrinsic_lidar_to_lidar_2d_calibrator.hpp>
-#include <tier4_autoware_utils/geometry/geometry.hpp>
+#include <autoware/universe_utils/geometry/geometry.hpp>
 
 #include <pcl/ModelCoefficients.h>
 #include <pcl/PCLPointCloud2.h>
@@ -326,7 +326,7 @@ void LidarToLidar2DCalibrator::calibrationTimerCallback()
   // Optional filtering
   if (filter_estimations_) {
     auto estimated_rpy =
-      tier4_autoware_utils::getRPY(tf2::toMsg(estimated_kit_to_source_eigen).orientation);
+      autoware::universe_utils::getRPY(tf2::toMsg(estimated_kit_to_source_eigen).orientation);
 
     Eigen::Vector3d x(
       estimated_rpy.z, estimated_kit_to_source_eigen.translation().x(),
@@ -345,7 +345,7 @@ void LidarToLidar2DCalibrator::calibrationTimerCallback()
     estimated_kit_to_source_eigen.translation().y() = kalman_filter_.getXelement(2);
 
     geometry_msgs::msg::Pose pose_msg;
-    pose_msg.orientation = tier4_autoware_utils::createQuaternionFromRPY(
+    pose_msg.orientation = autoware::universe_utils::createQuaternionFromRPY(
       estimated_rpy.x, estimated_rpy.y, estimated_rpy.z);
 
     pose_msg.position.x = kalman_filter_.getXelement(1);

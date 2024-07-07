@@ -18,7 +18,7 @@
   <depend>tf2</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
-  <depend>tier4_autoware_utils</depend>
+  <depend>autoware_universe_utils</depend>
 
   <exec_depend>python3-matplotlib</exec_depend>
   <exec_depend>python3-pandas</exec_depend>

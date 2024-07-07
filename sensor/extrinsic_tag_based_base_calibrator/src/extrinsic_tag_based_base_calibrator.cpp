@@ -27,7 +27,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
-#include <tier4_autoware_utils/geometry/geometry.hpp>
+#include <autoware/universe_utils/geometry/geometry.hpp>
 
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
@@ -532,9 +532,9 @@ void ExtrinsicTagBasedBaseCalibrator::calibrationRequestCallback(
 
   // Display the initial and calibrated values
   const auto & base_to_sensor_kit_rpy =
-    tier4_autoware_utils::getRPY(base_link_to_sensor_kit_msg.orientation);
+    autoware::universe_utils::getRPY(base_link_to_sensor_kit_msg.orientation);
   const auto & initial_base_to_sensor_kit_rpy =
-    tier4_autoware_utils::getRPY(initial_base_link_to_sensor_kit_msg.orientation);
+    autoware::universe_utils::getRPY(initial_base_link_to_sensor_kit_msg.orientation);
   RCLCPP_INFO(this->get_logger(), "base_link: initial and calibrated statistics statistics");
   RCLCPP_INFO(
     this->get_logger(), "\tinitial: x=%.5f y=%.5f z=%.5f roll=%.5f pitch=%.5f yaw=%.5f",
